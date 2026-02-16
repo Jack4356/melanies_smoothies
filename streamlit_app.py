@@ -23,17 +23,25 @@ session = cnx.session()
 # --------------------------------------------------
 # Load Fruit Options from Snowflake
 # --------------------------------------------------
-fruit_df = session.table("smoothies.public.fruit_options") \
-                  .select(col("FRUIT_NAME"))
+fruit_df = (
+    session.table("smoothies.public.fruit_options")
+    .select(
+        col("FRUIT_NAME"),
+        col("SEARCH_ON")
+    )
+)
 
-fruit_list = [row["FRUIT_NAME"] for row in fruit_df.collect()]
+# Build mappings
+fruit_rows = fruit_df.collect()
+fruit_names = [row["FRUIT_NAME"] for row in fruit_rows]
+search_map = {row["FRUIT_NAME"]: row["SEARCH_ON"] for row in fruit_rows}
 
 # --------------------------------------------------
 # Multiselect (Max 5 Fruits)
 # --------------------------------------------------
 ingredients_list = st.multiselect(
     "Choose ingredients:",
-    options=fruit_list,
+    options=fruit_names,
     max_selections=5
 )
 
@@ -44,12 +52,19 @@ if ingredients_list:
     st.subheader("🍓 Fruit Nutrition Details")
 
     for fruit in ingredients_list:
+        search_on = search_map.get(fruit)
+
+        # Skip API call if SEARCH_ON is missing
+        if not search_on:
+            st.warning(f"No nutrition data available for {fruit}")
+            continue
+
         response = requests.get(
-            f"https://my.smoothiefroot.com/api/fruit/{fruit.lower()}"
+            f"https://my.smoothiefroot.com/api/fruit/{search_on.lower()}"
         )
 
         if response.status_code == 200:
-            with st.expander(f"🍉 {fruit.capitalize()} Nutrition"):
+            with st.expander(f"🍉 {fruit} Nutrition"):
                 st.dataframe(
                     response.json(),
                     use_container_width=True
