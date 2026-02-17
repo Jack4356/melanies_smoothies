@@ -76,17 +76,23 @@ if ingredients_list:
 # Insert Order into Snowflake
 # --------------------------------------------------
 if ingredients_list and name_on_order:
-    ingredients_string = ", ".join(ingredients_list)
+    ingredients_list_sorted = sorted(ingredients_list)
+    ingredients_string = ", ".join(ingredients_list_sorted)
+
+    order_filled = True
+    if name_on_order == "Kevin":
+        order_filled = False
 
     insert_sql = """
-        INSERT INTO smoothies.public.orders (NAME_ON_ORDER, INGREDIENTS)
-        VALUES (?, ?)
+        INSERT INTO smoothies.public.orders
+        (NAME_ON_ORDER, INGREDIENTS, ORDER_FILLED, ORDER_TS)
+        VALUES (?, ?, ?, CURRENT_TIMESTAMP())
     """
 
     if st.button("Submit Order"):
         session.sql(
             insert_sql,
-            params=[name_on_order, ingredients_string]
+            params=[name_on_order, ingredients_string, order_filled]
         ).collect()
 
         st.success(f"Your smoothie is ordered, {name_on_order}! ✅")
