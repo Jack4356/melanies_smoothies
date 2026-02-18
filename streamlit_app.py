@@ -76,9 +76,6 @@ if ingredients_list and name_on_order:
     # ✅ NO SPACES AFTER COMMAS
     ingredients_string = ",".join(ingredients_list)
 
-    # Kevin must be NOT filled
-    order_filled = False if name_on_order == "Kevin" else True
-
     insert_sql = """
         INSERT INTO smoothies.public.orders
         (NAME_ON_ORDER, INGREDIENTS, ORDER_FILLED, ORDER_TS)
