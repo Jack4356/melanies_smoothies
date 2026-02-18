@@ -31,7 +31,6 @@ fruit_df = (
     )
 )
 
-# Build mappings
 fruit_rows = fruit_df.collect()
 fruit_names = [row["FRUIT_NAME"] for row in fruit_rows]
 search_map = {row["FRUIT_NAME"]: row["SEARCH_ON"] for row in fruit_rows}
@@ -40,13 +39,13 @@ search_map = {row["FRUIT_NAME"]: row["SEARCH_ON"] for row in fruit_rows}
 # Multiselect (Max 5 Fruits)
 # --------------------------------------------------
 ingredients_list = st.multiselect(
-    "Choose ingredients:",
+    "Choose ingredients (select in the EXACT order):",
     options=fruit_names,
     max_selections=5
 )
 
 # --------------------------------------------------
-# Show Nutrition Info for Each Selected Fruit
+# Show Nutrition Info
 # --------------------------------------------------
 if ingredients_list:
     st.subheader("🍓 Fruit Nutrition Details")
@@ -54,7 +53,6 @@ if ingredients_list:
     for fruit in ingredients_list:
         search_on = search_map.get(fruit)
 
-        # Skip API call if SEARCH_ON is missing
         if not search_on:
             st.warning(f"No nutrition data available for {fruit}")
             continue
@@ -65,10 +63,7 @@ if ingredients_list:
 
         if response.status_code == 200:
             with st.expander(f"🍉 {fruit} Nutrition"):
-                st.dataframe(
-                    response.json(),
-                    use_container_width=True
-                )
+                st.dataframe(response.json(), use_container_width=True)
         else:
             st.warning(f"No nutrition data available for {fruit}")
 
@@ -76,12 +71,13 @@ if ingredients_list:
 # Insert Order into Snowflake
 # --------------------------------------------------
 if ingredients_list and name_on_order:
-    ingredients_list_sorted = sorted(ingredients_list)
-    ingredients_string = ", ".join(ingredients_list_sorted)
 
-    order_filled = True
-    if name_on_order == "Kevin":
-        order_filled = False
+    # ✅ DO NOT SORT
+    # ✅ NO SPACES AFTER COMMAS
+    ingredients_string = ",".join(ingredients_list)
+
+    # Kevin must be NOT filled
+    order_filled = False if name_on_order == "Kevin" else True
 
     insert_sql = """
         INSERT INTO smoothies.public.orders
