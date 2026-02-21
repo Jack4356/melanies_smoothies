@@ -85,7 +85,7 @@ if ingredients_list and name_on_order:
     if st.button("Submit Order"):
         session.sql(
             insert_sql,
-            params=[name_on_order, ingredients_string, order_filled]
+            params=[name_on_order, ingredients_string]
         ).collect()
 
         st.success(f"Your smoothie is ordered, {name_on_order}! ✅")
