@@ -72,9 +72,11 @@ if ingredients_list:
 # --------------------------------------------------
 if ingredients_list and name_on_order:
 
-    # ✅ DO NOT SORT
-    # ✅ NO SPACES AFTER COMMAS
-    ingredients_string = ",".join(ingredients_list)
+    # ✅ EXACT formatting required for HASH matching
+    ingredients_string = ", ".join(ingredients_list)
+
+    # Kevin orders are NOT filled
+    order_filled = False if name_on_order == "Kevin" else True
 
     insert_sql = """
         INSERT INTO smoothies.public.orders
@@ -85,7 +87,11 @@ if ingredients_list and name_on_order:
     if st.button("Submit Order"):
         session.sql(
             insert_sql,
-            params=[name_on_order, ingredients_string]
+            params=[
+                name_on_order,
+                ingredients_string,
+                order_filled
+            ]
         ).collect()
 
         st.success(f"Your smoothie is ordered, {name_on_order}! ✅")
