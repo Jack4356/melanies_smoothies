@@ -28,7 +28,6 @@ fruit_df = (
 )
 
 fruit_rows = fruit_df.collect()
-
 fruit_names = [row["FRUIT_NAME"] for row in fruit_rows]
 search_map = {row["FRUIT_NAME"]: row["SEARCH_ON"] for row in fruit_rows}
 
@@ -50,32 +49,29 @@ if ingredients_list:
     st.subheader("🍓 Fruit Nutrition Details")
 
     for fruit in ingredients_list:
-        # ✅ BUILD STRING IN LOOP (DO NOT SORT)
         ingredients_string += fruit + ", "
 
         search_on = search_map.get(fruit)
-
         if search_on:
             response = requests.get(
                 f"https://my.smoothiefroot.com/api/fruit/{search_on}"
             )
-
             if response.status_code == 200:
                 with st.expander(f"{fruit} Nutrition Information"):
                     st.dataframe(response.json(), use_container_width=True)
 
-# ✅ REMOVE TRAILING COMMA + SPACE
+# Remove trailing comma + space
 ingredients_string = ingredients_string.rstrip(", ")
 
 # --------------------------------------------------
-# Insert Order (NO ORDER_FILLED HERE)
+# Insert Order (ORDER_FILLED DEFAULT = FALSE)
 # --------------------------------------------------
 if st.button("Submit Order") and name_on_order and ingredients_string:
 
     insert_sql = """
         INSERT INTO smoothies.public.orders
-        (NAME_ON_ORDER, INGREDIENTS, ORDER_TS)
-        VALUES (?, ?, CURRENT_TIMESTAMP())
+        (NAME_ON_ORDER, INGREDIENTS, ORDER_FILLED, ORDER_TS)
+        VALUES (?, ?, FALSE, CURRENT_TIMESTAMP())
     """
 
     session.sql(
